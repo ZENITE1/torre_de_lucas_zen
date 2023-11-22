@@ -40,7 +40,10 @@ public class GameScreenMain implements Screen {
     private static final int whith = Gdx.graphics.getWidth();
     private static final int height = Gdx.graphics.getHeight();
     private int whith3 = whith/3;
-    private int contador_gotas_movimento = 0;
+    private  float worldCoordsx = 0;
+    private float worldCoordsy = 0;
+    private boolean showSombra = false;
+    private int contador_de_movimento = 0;
     private Sombra sombra;
     OrthographicCamera camera;
     ArrayList<Tower> towers;
@@ -135,10 +138,10 @@ public class GameScreenMain implements Screen {
                     selectedDisk.setPosition(worldCoords.x, worldCoords.y);
 
                     //inicia a desenhar a sombra
-                    shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-                    shapeRenderer.setColor(Color.DARK_GRAY);
-                    sombra.draw(shapeRenderer,(int) worldCoords.x,(int) worldCoords.y);
-
+                    showSombra = true;// desenha a sambra
+                    sombra.setSize((int) selectedDisk.getWidth());//tamanho da saobra
+                    worldCoordsx  = worldCoords.x; // posicoes das sombras quando é arrastada
+                    worldCoordsy = worldCoords.y;
                 }
                 return true;
             }
@@ -177,6 +180,7 @@ public class GameScreenMain implements Screen {
 
                     selectedDisk = null;
                     towerSelected = null;
+                    showSombra = false;
 
                 }
                 return true;
@@ -200,7 +204,14 @@ public class GameScreenMain implements Screen {
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
 
-        fonte_movimento.draw(this.batch,""+contador_gotas_movimento,10,Gdx.graphics.getHeight() - 10);
+        fonte_movimento.draw(this.batch,""+contador_de_movimento,10,Gdx.graphics.getHeight() - 10);
+
+
+        if(showSombra){
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(Color.DARK_GRAY);
+            sombra.draw(shapeRenderer,(int) worldCoordsx,(int) worldCoordsy);
+        }
 
 //        this.batch.end();
  //       shapeRenderer.end();
@@ -227,7 +238,7 @@ public class GameScreenMain implements Screen {
     @Override
     public void show() {}
     public void moveDisk(Tower sourceTower, Tower destinationTower) {
-        contador_gotas_movimento++; //sempre que mover uma peca contar o movimento
+        contador_de_movimento++; //sempre que mover uma peca contar o movimento
         Disk movingDisk = sourceTower.pop(); // Remova o disco da torre de origem
         destinationTower.push(movingDisk); // Adicione o disco à torre de destino
     }

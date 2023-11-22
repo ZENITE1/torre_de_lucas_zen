@@ -22,6 +22,10 @@ public class Sombra extends Actor {
         shapeRenderer.rect(x-(size/2),y,size,height);
     }
 
+    public void setSize(int size) {
+        this.size = size;
+    }
+
     public int getSize() {
         return size;
     }

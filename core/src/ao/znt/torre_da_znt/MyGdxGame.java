@@ -37,6 +37,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 
 		shapeRenderer.end();
+		batch.end();
 
 	}
 	

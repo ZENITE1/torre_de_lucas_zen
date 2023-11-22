@@ -16,7 +16,6 @@ public class TorreZNT extends Game {
         shapeRenderer = new ShapeRenderer();
         gameScreen = new GameScreenMain(batch,shapeRenderer);
         setScreen(gameScreen);
-
     }
 
     @Override

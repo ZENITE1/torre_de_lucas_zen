@@ -8,7 +8,6 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 
 public class Disk extends Actor {
     private TextureRegion textureRegion; // Textura do disco
-    private int width; // Largura do disco
     private int size; // Tamanho do disco
     private int height; // Altura do disco
 
@@ -22,6 +21,10 @@ public class Disk extends Actor {
     @Override
     public void draw(Batch batch, float parentAlpha) {
         batch.draw(textureRegion, getX(), getY(), getWidth(), getHeight());
+    }
+
+    public void setWidth(int width) {
+        this.size = size;
     }
 
     public int getSize() {

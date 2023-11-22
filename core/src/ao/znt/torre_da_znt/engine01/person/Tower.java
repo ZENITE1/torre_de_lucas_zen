@@ -17,7 +17,7 @@ public class Tower extends Actor {
     private float y; // Posição Y da torre
     private float width; // Largura da torre
     private float height; // Altura da torre
-    private int limiteDeDiscos = 5;
+    private int limiteDeDiscos = 3;
     public Stack<Disk> disks;
     private Texture texture; // A textura que representa a torre
 
