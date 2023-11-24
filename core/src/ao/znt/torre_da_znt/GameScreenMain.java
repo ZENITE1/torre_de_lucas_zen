@@ -7,13 +7,10 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -24,15 +21,19 @@ import java.util.ArrayList;
 
 import ao.znt.torre_da_znt.engine01.person.Tower;
 import ao.znt.torre_da_znt.engine01.scene.Disk;
+import ao.znt.torre_da_znt.engine01.scene.Fundo;
 import ao.znt.torre_da_znt.engine01.scene.Sombra;
 
 public class GameScreenMain implements Screen {
 
     private final SpriteBatch batch;
+    private Fundo background;
+    private Fundo background1;
     private final ShapeRenderer shapeRenderer;
     private BitmapFont fonte_movimento;
     private Stage stage; // Objeto Stage para renderização da interface
     private Tower tower1,tower2,tower3, towerSelected;
+    private BitmapFont bitmapFont;
    // ShapeRenderer shapeRenderer;
     Viewport v;
     private Disk selectedDisk; // Disco selecionado para movimento
@@ -43,6 +44,7 @@ public class GameScreenMain implements Screen {
     private  float worldCoordsx = 0;
     private float worldCoordsy = 0;
     private boolean showSombra = false;
+    private boolean movimentoPermitido = true;
     private int contador_de_movimento = 0;
     private Sombra sombra;
     OrthographicCamera camera;
@@ -52,19 +54,21 @@ public class GameScreenMain implements Screen {
 
         this.shapeRenderer = shapeRenderer;
         this.batch = batch;
+        //bitmapFont = new BitmapFont(Gdx.files.internal("kenvector.ttf"));
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         fonte_movimento = new BitmapFont();
+        background = new Fundo("bg.png");
+        background1 = new Fundo("bg1.png");
+
 
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
-        final Texture newTexture0 = new Texture(Gdx.files.internal("buttonSquare_brown_pressed.png")); // Carregue uma nova textura
-        final Texture newTexture1 = new Texture(Gdx.files.internal("blue_button05.png")); // Carregue uma nova textura
-        final Texture newTexture2 = new Texture(Gdx.files.internal("green_button05.png")); // Carregue uma nova textura
-        final Texture newTexture3 = new Texture(Gdx.files.internal("grey_button05.png")); // Carregue uma nova textura
-        final Texture newTexture4 = new Texture(Gdx.files.internal("red_button10.png")); // Carregue uma nova textura
-        final Texture newTexture5 = new Texture(Gdx.files.internal("yellow_button05.png")); // Carregue uma nova textura
+        //stage.addActor(background);
+        stage.addActor(background1);
+
+        final Texture newTexture0 = new Texture(Gdx.files.internal("haste.png")); // Carregue uma nova textura
         //shapeRenderer = new ShapeRenderer();
 
 
@@ -87,22 +91,37 @@ public class GameScreenMain implements Screen {
         stage.addActor(tower3);
 
         // Crie três discos com tamanhos diferentes
-        Disk disk = new Disk(newTexture1,whith3-180);
-        Disk disk0 = new Disk(newTexture2,whith3-140); // Tamanho 100
-        Disk disk1 = new Disk(newTexture3,whith3-100); // Tamanho 100
-        Disk disk2 = new Disk(newTexture4,whith3-60);  // Tamanho 75
-        Disk disk3 = new Disk(newTexture5,whith3-20);  // Tamanho 50
+        Disk disk00 = new Disk(whith3-245);
+        Disk disk01 = new Disk(whith3-225);
+        Disk disk02 = new Disk(whith3-205);
+        Disk disk03 = new Disk(whith3-185);
+        Disk disk04 = new Disk(whith3-165);
+        Disk disk05 = new Disk(whith3-145);
+        Disk disk06 = new Disk(whith3-125);
+        Disk disk07 = new Disk(whith3-105);
+        Disk disk08 = new Disk(whith3-85);
+        Disk disk09 = new Disk(whith3-65); // Tamanho 100
+        Disk disk10 = new Disk(whith3-45); // Tamanho 100
+        Disk disk11 = new Disk(whith3-25);  // Tamanho 75
+        Disk disk12 = new Disk(whith3-5);  // Tamanho 50
 
         //Sombra dos discos
         sombra = new Sombra(whith3-100);
         stage.addActor(sombra);
         // Adicione os discos à torre 1
-        tower1.push(disk3);
-        tower1.push(disk2);
-        tower1.push(disk1);
-        tower1.push(disk0);
-        tower1.push(disk);
-
+        tower1.push(disk12);
+        tower1.push(disk11);
+        tower1.push(disk10);
+        tower1.push(disk09);
+        tower1.push(disk08);
+        tower1.push(disk07);
+        tower1.push(disk06);
+        tower1.push(disk05);
+        tower1.push(disk04);
+        tower1.push(disk03);
+        tower1.push(disk02);
+        tower1.push(disk01);
+        tower1.push(disk00);
 
 
         Gdx.input.setInputProcessor(new InputAdapter() {
@@ -119,7 +138,8 @@ public class GameScreenMain implements Screen {
                 for (Tower tower:towers) {
                     if (tower.pickTopDisk(worldCoords.x, worldCoords.y) != null) {
                         towerSelected = tower;
-                        selectedDisk = tower.pickTopDisk(worldCoords.x, worldCoords.y);
+                        selectedDisk = tower.pop();
+                        //selectedDisk = tower.pickTopDisk(worldCoords.x, worldCoords.y);
                         break;
                     }
                 }
@@ -136,6 +156,8 @@ public class GameScreenMain implements Screen {
 
                     // Atualize a posição do disco arrastado
                     selectedDisk.setPosition(worldCoords.x, worldCoords.y);
+
+
 
                     //inicia a desenhar a sombra
                     showSombra = true;// desenha a sambra
@@ -169,8 +191,10 @@ public class GameScreenMain implements Screen {
                    System.out.println("disco pode ser movido para uma torre?: "+targetTower);
                     if (targetTower != null && targetTower.isMoveValid(selectedDisk,targetTower)) {
                         //targetTower.push(selectedDisk);
-                        moveDisk(towerSelected,targetTower);
+                        movimentoPermitido = moveDisk(towerSelected,targetTower);
                     } else {
+                        towerSelected.push(selectedDisk);
+                        //Voltar o disco na torre de origem
                         // O movimento é inválido, retorne o disco à posição original
                         //if(towerSelected != null)
                             //nao faça nada ou mostra um aviso
@@ -194,24 +218,28 @@ public class GameScreenMain implements Screen {
         camera.update();
 
         // Limpe a tela
-        Gdx.gl.glClearColor(0, 0, 1, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 
         this.batch.begin();
+        Gdx.gl.glClearColor(0, 0, 1, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
         // Desenhe a interface do jogo
+
+
         stage.getBatch().setProjectionMatrix(camera.combined);
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
 
-        fonte_movimento.draw(this.batch,""+contador_de_movimento,10,Gdx.graphics.getHeight() - 10);
-
+       // fonte_movimento.draw(this.batch,""+contador_de_movimento,10,Gdx.graphics.getHeight() - 10);
+        //bitmapFont.draw(this.batch,""+contador_de_movimento,10,Gdx.graphics.getHeight() - 10);
 
         if(showSombra){
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            shapeRenderer.setColor(Color.DARK_GRAY);
+            shapeRenderer.setColor(Color.LIGHT_GRAY);
             sombra.draw(shapeRenderer,(int) worldCoordsx,(int) worldCoordsy);
         }
+
 
 //        this.batch.end();
  //       shapeRenderer.end();
@@ -219,6 +247,7 @@ public class GameScreenMain implements Screen {
 
     @Override
     public void dispose() {
+
         stage.dispose();
        // shapeRenderer.dispose();
     }
@@ -237,10 +266,15 @@ public class GameScreenMain implements Screen {
 
     @Override
     public void show() {}
-    public void moveDisk(Tower sourceTower, Tower destinationTower) {
+    public boolean moveDisk(Tower sourceTower, Tower destinationTower) {
         contador_de_movimento++; //sempre que mover uma peca contar o movimento
-        Disk movingDisk = sourceTower.pop(); // Remova o disco da torre de origem
-        destinationTower.push(movingDisk); // Adicione o disco à torre de destino
+
+        if (selectedDisk !=null) {
+            return destinationTower.push(selectedDisk); // Adicione o disco à torre de destin
+        }else {
+            Disk movingDisk = sourceTower.pop(); // Remova o disco da torre de origem
+            return destinationTower.push(movingDisk); // Adicione o disco à torre de destino
+             }
     }
 
 }

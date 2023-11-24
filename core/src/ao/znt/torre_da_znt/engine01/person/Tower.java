@@ -17,19 +17,21 @@ public class Tower extends Actor {
     private float y; // Posição Y da torre
     private float width; // Largura da torre
     private float height; // Altura da torre
-    private int limiteDeDiscos = 3;
+    private int limiteDeDiscos = 12;
     public Stack<Disk> disks;
+    private  Rectangle rectangle;
     private Texture texture; // A textura que representa a torre
 
     public Tower(Texture texture,int x) {
         this.texture = texture;
-        this.width = 50;
-        this.height = Gdx.graphics.getHeight() - 200;
+        this.width = 30;
+        this.height = Gdx.graphics.getHeight() - 100;
         //this.setX(x);
         //this.y = 0;
         this.setY(this.y);
         this.disks = new Stack<>();
         this.setBounds(x-(width/2), y, width, height);
+        rectangle = new Rectangle(x-(Gdx.graphics.getWidth()/3)/2,0,Gdx.graphics.getWidth()/3,height);
     }
     public boolean push(Disk disk) {
         // Verifica se a torre já atingiu o limite de discos
@@ -56,7 +58,24 @@ public class Tower extends Actor {
         for (Disk disk : disks) {
             System.out.println("Desenha Discos na Torre. Disco: "+i);
             disk.setX((getX()+width/2)-(disk.getWidth()/2));
-            disk.setY(getDiskPosition(disk)*10+getDiskPosition(disk)*40);
+            //10x + 40x = Y
+            //10x1 + 20x1 = Y1
+            /*
+            * x=0 Y = 0
+            * x1=1 Y1 = 30
+            * x1=2 Y1 = 60
+            *  x1=3 Y1 = 90
+            *  x1=4 Y1 = 120
+            *  x1=5 Y1 = 150
+            *  x1=6 Y1 = 180
+            *  x1=7 Y1 = 110
+            *  x1=8 Y1 = 240
+            *  x1=9 Y1 = 270
+            *  x1=10 Y1 = 300
+            *  x1=11 Y1 = 330
+            *  x1=12 Y1 = 360
+            * */
+            disk.setY(getDiskPosition(disk)*10+getDiskPosition(disk)*20);
             disk.draw(batch, parentAlpha);
             i++;
         }
@@ -102,7 +121,7 @@ public class Tower extends Actor {
         return null; // Retorna nulo se nenhum disco foi tocado
     }
     public Tower getTowerAtPosition(float touchX,float touchY) {
-        if (getBounds().contains(touchX, touchY))
+        if (rectangle.contains(touchX, touchY))
             return this; // A torre foi tocada, retornamos a referência para ela
 
         return null; // Nenhuma torre foi tocada, retornamos null
@@ -114,6 +133,11 @@ public class Tower extends Actor {
 
         return null; // Nenhuma torre foi tocada, retornamos null
     }
+
+    public Rectangle getRectangle() {
+        return rectangle;
+    }
+
     public Rectangle getBounds() {
         return new Rectangle(getX(), getY(), width, height);
     }
