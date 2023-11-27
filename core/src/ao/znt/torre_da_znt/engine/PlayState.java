@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -24,15 +25,17 @@ import ao.znt.torre_da_znt.engine01.person.Tower;
 import ao.znt.torre_da_znt.engine01.scene.Disk;
 import ao.znt.torre_da_znt.engine01.scene.Fundo;
 import ao.znt.torre_da_znt.engine01.scene.Sombra;
+import ao.znt.torre_da_znt.states.GameOverState;
 import ao.znt.torre_da_znt.states.GameStateManager;
 import ao.znt.torre_da_znt.states.State;
 
 public class PlayState extends State {
 
+    private final FreeTypeFontGenerator generator;
+    private final BitmapFont bitmap;
     private Fundo background;
     private Fundo background1;
     private final ShapeRenderer shapeRenderer;
-    private BitmapFont fonte_movimento;
     private Stage stage; // Objeto Stage para renderização da interface
     private Tower tower1,tower2,tower3, towerSelected;
     private BitmapFont bitmapFont;
@@ -56,9 +59,10 @@ public class PlayState extends State {
     int nivel;
     int nivelActual;
     int menor_movimento_nivel_actual = 0;
-    TextureRegion firstImageRegion;
     int numerosDeMovimentosPorNivel[] = {0,0,0,0,0,0,0,0,0,0,0,0};
     int numerosDeMovimentosPorNivelActual[] = {0,0,0,0,0,0,0,0,0,0,0,0};
+    int numerosDeMovimentosAlvo[] = {3,7,15,31,63,127,255,511,1023,2047,4096};
+    int menor_movimento_alvo;
 
     public PlayState(GameStateManager gsm){
         super(gsm);
@@ -68,34 +72,32 @@ public class PlayState extends State {
             this.numerosDeMovimentosPorNivel[i] = preferences.getInteger("menor_n_movimento_nivel" + i, 0);
         }
         this.menor_movimento_nivel_actual = numerosDeMovimentosPorNivel[nivel-1];// nivel-1 por se nivel for 1 posicao sera 0
-
+        this.menor_movimento_alvo = numerosDeMovimentosAlvo[nivel-1];
         //Na tela de GameOver ou Sair do jogo e salvar os dados
         //Preferencias
         /*if(nivelActual > nivel){
             preferences.putInteger("nivel",nivelActual);
         }
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < 11; i++) {
             if (numerosDeMovimentosPorNivelActual[i] < numerosDeMovimentosPorNivel[i])
                 preferences.putInteger("menor_n_movimento_nivel" + i,this.numerosDeMovimentosPorNivelActual[i]);
         }*/
 
 
 
-        Texture texture = new Texture(Gdx.files.internal("wood_spritesheet.png"));
-        TextureRegion[][] textureRegions = TextureRegion.split(texture, 256 , 256);
-
-        // Agora, textureRegions é uma matriz 2D de TextureRegion contendo todas as regiões individuais.
-
-        // Por exemplo, para obter a região da primeira imagem:
-        firstImageRegion = textureRegions[0][0];
-
-
 
         shapeRenderer = new ShapeRenderer();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        fonte_movimento = new BitmapFont();
-        fonte_movimento.getData().setScale(2);
+
+        generator = new FreeTypeFontGenerator(Gdx.files.internal("kfuture.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+
+        parameter.size = 25;
+        parameter.borderWidth = 1;
+        parameter.borderColor = Color.BLACK;
+        parameter.color = Color.WHITE;
+        bitmap = generator.generateFont(parameter);
 
         background = new Fundo("bg.png");
         background1 = new Fundo("bg1.png");
@@ -113,9 +115,9 @@ public class PlayState extends State {
         // Crie três torres
 
         towers = new ArrayList<Tower>();
-        tower1 = new Tower(newTexture0, whith3/2);
-        tower2 = new Tower(newTexture0,(whith3)+(whith3/2));
-        tower3 = new Tower(newTexture0,2*whith3+(whith3/2));
+        tower1 = new Tower(newTexture0, whith3/2,nivel+1);
+        tower2 = new Tower(newTexture0,(whith3)+(whith3/2),nivel+1);
+        tower3 = new Tower(newTexture0,2*whith3+(whith3/2),nivel+1);
 
         towers.add(tower1);
         towers.add(tower2);
@@ -127,7 +129,7 @@ public class PlayState extends State {
         stage.addActor(tower2);
         stage.addActor(tower3);
 
-        // Crie três discos com tamanhos diferentes
+        // Crie n discos com tamanhos diferentes
         Disk disk00 = new Disk(whith3-245);
         Disk disk01 = new Disk(whith3-225);
         Disk disk02 = new Disk(whith3-205);
@@ -228,6 +230,7 @@ public class PlayState extends State {
                     if (targetTower != null && targetTower.isMoveValid(selectedDisk,targetTower)) {
                         //targetTower.push(selectedDisk);
                         movimentoPermitido = moveDisk(towerSelected,targetTower);
+                        isGameOver(tower2.disks.size());
                     } else {
                         towerSelected.push(selectedDisk);
                         //Voltar o disco na torre de origem
@@ -246,17 +249,14 @@ public class PlayState extends State {
                 return true;
             }
         });
-
     }
 
     @Override
     protected void handleInput() {
-
     }
 
     @Override
     public void update(float dt) {
-
     }
 
     @Override
@@ -279,8 +279,8 @@ public class PlayState extends State {
         stage.draw();
 
 
-        sb.draw(firstImageRegion, 10, 300);
-        fonte_movimento.draw(sb,"Movimentos: "+contador_de_movimento,10,Gdx.graphics.getHeight() - 10);
+        bitmap.draw(sb,"mov: "+contador_de_movimento,20,Gdx.graphics.getHeight() - 20);
+        bitmap.draw(sb,"alvo:"+menor_movimento_alvo,20,Gdx.graphics.getHeight()- 50);
         //bitmapFont.draw(this.batch,""+contador_de_movimento,10,Gdx.graphics.getHeight() - 10);
 
         if(showSombra){
@@ -301,14 +301,27 @@ public class PlayState extends State {
         shapeRenderer.dispose();
     }
  public boolean moveDisk(Tower sourceTower, Tower destinationTower) {
-        contador_de_movimento++; //sempre que mover uma peca contar o movimento
-
+     boolean result;
         if (selectedDisk !=null) {
-            return destinationTower.push(selectedDisk); // Adicione o disco à torre de destin
+            contador_de_movimento++; //sempre que mover uma peca contar o movimento
+            result = destinationTower.push(selectedDisk); // Adicione o disco à torre de destin
+            //verificar se alcancou o objectivo
+            System.out.println("SIZE: "+tower2.disks.size());
+            return result;
         }else {
             Disk movingDisk = sourceTower.pop(); // Remova o disco da torre de origem
             return destinationTower.push(movingDisk); // Adicione o disco à torre de destino
              }
+    }
+    private void isGameOver(int size){
+        if (size == nivel+1) {
+            gameOver();
+        }
+    }
+
+    private void gameOver() {
+        gsm.set(new GameOverState(gsm));
+        dispose();
     }
 
 }

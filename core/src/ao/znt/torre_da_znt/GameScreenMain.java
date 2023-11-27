@@ -110,9 +110,9 @@ public class GameScreenMain implements Screen {
         // Crie três torres
 
         towers = new ArrayList<Tower>();
-        tower1 = new Tower(newTexture0, whith3/2);
-        tower2 = new Tower(newTexture0,(whith3)+(whith3/2));
-        tower3 = new Tower(newTexture0,2*whith3+(whith3/2));
+        tower1 = new Tower(newTexture0, whith3/2,2);
+        tower2 = new Tower(newTexture0,(whith3)+(whith3/2),2);
+        tower3 = new Tower(newTexture0,2*whith3+(whith3/2),2);
 
         towers.add(tower1);
         towers.add(tower2);

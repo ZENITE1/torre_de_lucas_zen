@@ -17,13 +17,14 @@ public class Tower extends Actor {
     private float y; // Posição Y da torre
     private float width; // Largura da torre
     private float height; // Altura da torre
-    private int limiteDeDiscos = 12;
+    private int limiteDeDiscos = 2;
     public Stack<Disk> disks;
     private  Rectangle rectangle;
     private Texture texture; // A textura que representa a torre
 
-    public Tower(Texture texture,int x) {
+    public Tower(Texture texture,int x,int limiteDeDiscos) {
         this.texture = texture;
+        this.limiteDeDiscos = limiteDeDiscos;
         this.width = 30;
         this.height = Gdx.graphics.getHeight() - 100;
         //this.setX(x);
