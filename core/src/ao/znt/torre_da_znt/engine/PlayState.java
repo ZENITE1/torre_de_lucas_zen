@@ -1,26 +1,20 @@
-package ao.znt.torre_da_znt;
+package ao.znt.torre_da_znt.engine;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -30,10 +24,11 @@ import ao.znt.torre_da_znt.engine01.person.Tower;
 import ao.znt.torre_da_znt.engine01.scene.Disk;
 import ao.znt.torre_da_znt.engine01.scene.Fundo;
 import ao.znt.torre_da_znt.engine01.scene.Sombra;
+import ao.znt.torre_da_znt.states.GameStateManager;
+import ao.znt.torre_da_znt.states.State;
 
-public class GameScreenMain implements Screen {
+public class PlayState extends State {
 
-    private final SpriteBatch batch;
     private Fundo background;
     private Fundo background1;
     private final ShapeRenderer shapeRenderer;
@@ -41,7 +36,7 @@ public class GameScreenMain implements Screen {
     private Stage stage; // Objeto Stage para renderização da interface
     private Tower tower1,tower2,tower3, towerSelected;
     private BitmapFont bitmapFont;
-   // ShapeRenderer shapeRenderer;
+    // ShapeRenderer shapeRenderer;
     Viewport v;
     private Skin skin;
     private Disk selectedDisk; // Disco selecionado para movimento
@@ -58,37 +53,45 @@ public class GameScreenMain implements Screen {
     OrthographicCamera camera;
     ArrayList<Tower> towers;
     Viewport viewport;
-    public GameScreenMain(SpriteBatch batch, final ShapeRenderer shapeRenderer){
+    int nivel;
+    int nivelActual;
+    int menor_movimento_nivel_actual = 0;
+    TextureRegion firstImageRegion;
+    int numerosDeMovimentosPorNivel[] = {0,0,0,0,0,0,0,0,0,0,0,0};
+    int numerosDeMovimentosPorNivelActual[] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+    public PlayState(GameStateManager gsm){
+        super(gsm);
+        Preferences preferences = Gdx.app.getPreferences("towergame");
+        this.nivel  = preferences.getInteger("nivel",1);
+        for (int i = 0; i < 12; i++) {
+            this.numerosDeMovimentosPorNivel[i] = preferences.getInteger("menor_n_movimento_nivel" + i, 0);
+        }
+        this.menor_movimento_nivel_actual = numerosDeMovimentosPorNivel[nivel-1];// nivel-1 por se nivel for 1 posicao sera 0
+
+        //Na tela de GameOver ou Sair do jogo e salvar os dados
+        //Preferencias
+        /*if(nivelActual > nivel){
+            preferences.putInteger("nivel",nivelActual);
+        }
+        for (int i = 0; i < 12; i++) {
+            if (numerosDeMovimentosPorNivelActual[i] < numerosDeMovimentosPorNivel[i])
+                preferences.putInteger("menor_n_movimento_nivel" + i,this.numerosDeMovimentosPorNivelActual[i]);
+        }*/
 
 
-        stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage);
 
-/*        Texture img1 = new Texture(Gdx.files.internal("img1.png"));
-        Texture img2 = new Texture(Gdx.files.internal("img2.png"));
+        Texture texture = new Texture(Gdx.files.internal("wood_spritesheet.png"));
+        TextureRegion[][] textureRegions = TextureRegion.split(texture, 256 , 256);
 
-        skin = new Skin(Gdx.files.internal("btn_style.json"));
+        // Agora, textureRegions é uma matriz 2D de TextureRegion contendo todas as regiões individuais.
 
-        Table table = new Table();
-        table.setFillParent(true); // A tabela ocupa toda a tela
-        stage.addActor(table);
-
-        // Adicione botões de opção à tabela
-        TextButton option1 = new TextButton("Opção 1", skin);
-        TextButton option2 = new TextButton("Opção 2", skin);
-        TextButton option3 = new TextButton("Opção 3", skin);
+        // Por exemplo, para obter a região da primeira imagem:
+        firstImageRegion = textureRegions[0][0];
 
 
-        TextButton.TextButtonStyle buttonStyle = skin.get("default", TextButton.TextButtonStyle.class);
-        buttonStyle.up = new TextureRegionDrawable(new TextureRegion(img2));
-        buttonStyle.down = new TextureRegionDrawable(new TextureRegion(img1));
 
-        option2.setStyle(buttonStyle);
-*/
-
-        this.shapeRenderer = shapeRenderer;
-        this.batch = batch;
-
+        shapeRenderer = new ShapeRenderer();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         fonte_movimento = new BitmapFont();
@@ -98,14 +101,14 @@ public class GameScreenMain implements Screen {
         background1 = new Fundo("bg1.png");
 
 
+        stage = new Stage(new ScreenViewport());
+        Gdx.input.setInputProcessor(stage);
 
         //stage.addActor(background);
         stage.addActor(background1);
 
         final Texture newTexture0 = new Texture(Gdx.files.internal("haste.png")); // Carregue uma nova textura
         //shapeRenderer = new ShapeRenderer();
-
-
 
         // Crie três torres
 
@@ -157,7 +160,6 @@ public class GameScreenMain implements Screen {
         tower1.push(disk01);
         tower1.push(disk00);
 
-
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
@@ -165,7 +167,7 @@ public class GameScreenMain implements Screen {
                 camera.unproject(worldCoords);
                 System.out.println("Clicaste em X: "+worldCoords.x+" Y: "+worldCoords.y);
 
-                  // executa quando tocamos ensima do objecto
+                // executa quando tocamos ensima do objecto
                 System.out.println("touchDown");
 
                 // Verifique se um disco foi tocado
@@ -218,11 +220,11 @@ public class GameScreenMain implements Screen {
                         if (tower.getTowerAtPosition(worldCoords.x,worldCoords.y) != null) {
                             System.out.println("uma torre encontrada: "+tower.getTowerAtPosition(worldCoords.x, worldCoords.y));
                             targetTower = tower;//.getTowerAtPosition(worldCoords.x, worldCoords.y);
-                           // moveDisk(towerSelected,targetTower);
+                            // moveDisk(towerSelected,targetTower);
                             break;
                         }
                     }
-                   System.out.println("disco pode ser movido para uma torre?: "+targetTower);
+                    System.out.println("disco pode ser movido para uma torre?: "+targetTower);
                     if (targetTower != null && targetTower.isMoveValid(selectedDisk,targetTower)) {
                         //targetTower.push(selectedDisk);
                         movimentoPermitido = moveDisk(towerSelected,targetTower);
@@ -231,9 +233,9 @@ public class GameScreenMain implements Screen {
                         //Voltar o disco na torre de origem
                         // O movimento é inválido, retorne o disco à posição original
                         //if(towerSelected != null)
-                            //nao faça nada ou mostra um aviso
-                            //towerSelected.push(selectedDisk);
-                            //moveDisk(targetTower,towerSelected);
+                        //nao faça nada ou mostra um aviso
+                        //towerSelected.push(selectedDisk);
+                        //moveDisk(targetTower,towerSelected);
                     }
 
                     selectedDisk = null;
@@ -244,17 +246,28 @@ public class GameScreenMain implements Screen {
                 return true;
             }
         });
+
     }
 
     @Override
-    public void render(float delta) {
+    protected void handleInput() {
+
+    }
+
+    @Override
+    public void update(float dt) {
+
+    }
+
+    @Override
+    public void render(SpriteBatch sb) {
         // Atualize a lógica do jogo
         camera.update();
 
         // Limpe a tela
 
 
-        this.batch.begin();
+        sb.begin();
         Gdx.gl.glClearColor(0, 0, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -266,7 +279,8 @@ public class GameScreenMain implements Screen {
         stage.draw();
 
 
-        fonte_movimento.draw(this.batch,"Movimentos: "+contador_de_movimento,10,Gdx.graphics.getHeight() - 10);
+        sb.draw(firstImageRegion, 10, 300);
+        fonte_movimento.draw(sb,"Movimentos: "+contador_de_movimento,10,Gdx.graphics.getHeight() - 10);
         //bitmapFont.draw(this.batch,""+contador_de_movimento,10,Gdx.graphics.getHeight() - 10);
 
         if(showSombra){
@@ -276,32 +290,17 @@ public class GameScreenMain implements Screen {
         }
 
 
-//        this.batch.end();
- //       shapeRenderer.end();
+        sb.end();
+        shapeRenderer.end();
     }
 
     @Override
     public void dispose() {
 
         stage.dispose();
-       // shapeRenderer.dispose();
+        shapeRenderer.dispose();
     }
-
-    @Override
-    public void resize(int width, int height) {}
-
-    @Override
-    public void pause() {}
-
-    @Override
-    public void resume() {}
-
-    @Override
-    public void hide() {}
-
-    @Override
-    public void show() {}
-    public boolean moveDisk(Tower sourceTower, Tower destinationTower) {
+ public boolean moveDisk(Tower sourceTower, Tower destinationTower) {
         contador_de_movimento++; //sempre que mover uma peca contar o movimento
 
         if (selectedDisk !=null) {
