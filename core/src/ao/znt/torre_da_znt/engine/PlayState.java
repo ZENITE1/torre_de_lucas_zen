@@ -60,8 +60,8 @@ public class PlayState extends State {
     int nivelActual;
     int menor_movimento_nivel_actual = 0;
     int numerosDeMovimentosPorNivel[] = {0,0,0,0,0,0,0,0,0,0,0,0};
-    int numerosDeMovimentosPorNivelActual[] = {0,0,0,0,0,0,0,0,0,0,0,0};
-    int numerosDeMovimentosAlvo[] = {3,7,15,31,63,127,255,511,1023,2047,4096};
+    int numerosDeMovimentosPorNivelActual[] = {0,0,0,0,0,0,0,0,0,0,0,0,0};
+    int numerosDeMovimentosAlvo[] = {1,3,7,15,31,63,127,255,511,1023,2047,4096};
     int menor_movimento_alvo;
 
     public PlayState(GameStateManager gsm){
@@ -115,9 +115,9 @@ public class PlayState extends State {
         // Crie três torres
 
         towers = new ArrayList<Tower>();
-        tower1 = new Tower(newTexture0, whith3/2,nivel+1);
-        tower2 = new Tower(newTexture0,(whith3)+(whith3/2),nivel+1);
-        tower3 = new Tower(newTexture0,2*whith3+(whith3/2),nivel+1);
+        tower1 = new Tower(newTexture0, whith3/2,nivel);
+        tower2 = new Tower(newTexture0,(whith3)+(whith3/2),nivel);
+        tower3 = new Tower(newTexture0,2*whith3+(whith3/2),nivel);
 
         towers.add(tower1);
         towers.add(tower2);
@@ -314,7 +314,7 @@ public class PlayState extends State {
              }
     }
     private void isGameOver(int size){
-        if (size == nivel+1) {
+        if (size == nivel) {
             gameOver();
         }
     }

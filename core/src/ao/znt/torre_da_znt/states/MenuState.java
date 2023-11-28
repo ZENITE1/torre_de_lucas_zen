@@ -3,6 +3,7 @@ package ao.znt.torre_da_znt.states;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -10,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.math.Vector3;
 
 import ao.znt.torre_da_znt.engine.PlayState;
 
@@ -24,21 +26,31 @@ public class MenuState extends State {
     private TextureAtlas atlas;
     private TextureRegion[] regions;
     private boolean audioActive = true;
-    int numerosDeMovimentosPorNivel[] = {0,0,0,0,0,0,0,0,0,0,0};
-    int numerosDeMovimentosAlvo[] = {3,7,15,31,63,127,255,511,1023,2047,4096};
+    int numerosDeMovimentosPorNivel[] = {0,0,0,0,0,0,0,0,0,0,0,0};
+    int numerosDeMovimentosAlvo[] = {1,3,7,15,31,63,127,255,511,1023,2047,4096};
     int menor_movimento_alvo;
-    int numerosDeMovimentosPorNivelActual[] = {0,0,0,0,0,0,0,0,0,0,0};
+    int numerosDeMovimentosPorNivelActual[] = {0,0,0,0,0,0,0,0,0,0,0,0};
     int nivel;
     int nivelActual;
     int menor_movimento_nivel_actual = 0;
 
     private int xRegion0;
     private int yRegion0;
+    int xBtnLeft;
+    int xBtnRight;
+    int yBtnLeft = 50;
+    int yBtnRight = 50;
+    Preferences preferences;
+
+
+
 
     public MenuState(GameStateManager gsm){
         super(gsm);
 
-        Preferences preferences = Gdx.app.getPreferences("towergame");
+
+
+        preferences = Gdx.app.getPreferences("towergame");
         this.nivel  = preferences.getInteger("nivel",1);
         for (int i = 0; i < 11; i++) {
             this.numerosDeMovimentosPorNivel[i] = preferences.getInteger("menor_n_movimento_nivel" + i, 0);
@@ -80,22 +92,51 @@ public class MenuState extends State {
         xRegion0 = Gdx.graphics.getWidth() - (regions[0].getRegionWidth()+20);
         yRegion0 = Gdx.graphics.getHeight() - (regions[0].getRegionHeight()+10);
 
+        xBtnLeft = Gdx.graphics.getWidth()/2 - 2*regions[1].getRegionWidth();
+        xBtnRight = Gdx.graphics.getWidth()/2 + regions[2].getRegionWidth();
+
     }
     @Override
     public void handleInput() {
+
+
         int xBtnPlay = Gdx.graphics.getWidth()/2 - playGame.getWidth()/2;
         int yBtnPlay = Gdx.graphics.getHeight()/2 - playGame.getHeight()/2;
 
         if(Gdx.input.justTouched()){
+            System.out.println("btn W: "+regions[1].getRegionWidth());
+            System.out.println("btn H: "+regions[1].getRegionHeight());
+
+            System.out.println("btn x: "+xBtnRight);
+            System.out.println("btn y: "+yBtnRight);
+
             //btn play
             if (Gdx.input.getX() > xBtnPlay &&
                     Gdx.input.getX() < xBtnPlay + playGame.getWidth() &&
                     Gdx.input.getY() > yBtnPlay &&
                     Gdx.input.getY() < yBtnPlay + playGame.getHeight()) {
+                    preferences.putInteger("nivel",nivel);
+                    preferences.flush();
                 gsm.set(new PlayState(gsm));
                 dispose();
             }
-            //TUDO quando for tocado mudar a png e talvez audio de click
+            //btn BACK
+            if (Gdx.input.getX() > xBtnLeft &&
+                    Gdx.input.getX() < xBtnLeft + regions[1].getRegionWidth() /*&&
+                    Gdx.input.getY() < yBtnLeft - regions[1].getRegionHeight()&&
+                    Gdx.input.getY() < yBtnPlay + regions[1].getRegionHeight()*/) {
+                System.out.println("btn BACK ");
+                if(nivel > 1) nivel--;
+            }
+            //btn NEXT
+            if (Gdx.input.getX() > xBtnRight &&
+                    Gdx.input.getX() < xBtnRight + regions[2].getRegionWidth() /*&&
+                    Gdx.input.getY() > yBtnRight - regions[2].getRegionHeight()&&
+                    Gdx.input.getY() < yBtnRight*/) {
+                System.out.println("btn NEXT");
+                if(nivel < 12) nivel++;
+            }
+            //AUDIO quando for tocado mudar a png e talvez audio de click
             if(Gdx.input.getX() > xRegion0 &&
                     Gdx.input.getX() < xRegion0 + regions[0].getRegionWidth()+30 &&
                     Gdx.input.getY() < (regions[0].getRegionHeight()+50)
@@ -119,9 +160,9 @@ public class MenuState extends State {
                 Gdx.graphics.getWidth()/2 - (playGame.getWidth()/2),
                 Gdx.graphics.getHeight()/2 - (playGame.getHeight()/2));
 
-        sb.draw(regions[1],Gdx.graphics.getWidth()/2 - 2*regions[1].getRegionWidth(),50);
+        sb.draw(regions[1],xBtnLeft,50);
         bitmap.draw(sb, ""+nivel, Gdx.graphics.getWidth()/2-10, 50+30);
-        sb.draw(regions[2],Gdx.graphics.getWidth()/2 + regions[2].getRegionWidth(),50);
+        sb.draw(regions[2],xBtnRight,50);
 
 
 
