@@ -1,7 +1,10 @@
 package ao.znt.torre_da_znt.states;
 
+import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
+import com.badlogic.gdx.assets.loaders.MusicLoader;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -41,7 +44,7 @@ public class MenuState extends State {
     int yBtnLeft = 50;
     int yBtnRight = 50;
     Preferences preferences;
-
+    Music music;
 
 
 
@@ -49,7 +52,7 @@ public class MenuState extends State {
         super(gsm);
 
 
-
+        music = Gdx.audio.newMusic(Gdx.files.internal("swing.mp3"));
         preferences = Gdx.app.getPreferences("towergame");
         this.nivel  = preferences.getInteger("nivel",1);
         for (int i = 0; i < 11; i++) {
@@ -181,12 +184,15 @@ public class MenuState extends State {
                     xRegion0,
                     yRegion0
             );
+            music.play();
+            music.setLooping(true);
         }else {
             sb.draw(
                     regions[0],
                     xRegion0,
                     yRegion0
             );
+            music.stop();
         }
 
 
@@ -196,5 +202,6 @@ public class MenuState extends State {
     public void dispose() {
         background.dispose();
         playGame.dispose();
+        music.dispose();
     }
 }
