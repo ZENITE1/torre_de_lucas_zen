@@ -12,7 +12,7 @@ public class Sombra extends Actor {
     private int height; // Altura do disco
 
     public Sombra(int width) {
-        this.height = 50;
+        this.height = 30;
         this.size = width;
         setBounds(getX(), getY(), width, height); // Define os limites do ator
     }

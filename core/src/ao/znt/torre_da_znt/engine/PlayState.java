@@ -1,9 +1,11 @@
 package ao.znt.torre_da_znt.engine;
 
+import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -28,6 +30,7 @@ import ao.znt.torre_da_znt.engine01.scene.Sombra;
 import ao.znt.torre_da_znt.states.GameOverState;
 import ao.znt.torre_da_znt.states.GameStateManager;
 import ao.znt.torre_da_znt.states.State;
+import sun.jvm.hotspot.runtime.Thread;
 
 public class PlayState extends State {
 
@@ -51,6 +54,7 @@ public class PlayState extends State {
     private float worldCoordsy = 0;
     private boolean showSombra = false;
     private boolean movimentoPermitido = true;
+    private boolean estaClicado = false;
     private int contador_de_movimento = 0;
     private Sombra sombra;
     OrthographicCamera camera;
@@ -63,6 +67,8 @@ public class PlayState extends State {
     int numerosDeMovimentosPorNivelActual[] = {0,0,0,0,0,0,0,0,0,0,0,0,0};
     int numerosDeMovimentosAlvo[] = {1,3,7,15,31,63,127,255,511,1023,2047,4096};
     int menor_movimento_alvo;
+    Sound audio_touchDown, audio_touchUp, audio_tree;
+
 
     public PlayState(GameStateManager gsm){
         super(gsm);
@@ -71,6 +77,11 @@ public class PlayState extends State {
         for (int i = 0; i < 12; i++) {
             this.numerosDeMovimentosPorNivel[i] = preferences.getInteger("menor_n_movimento_nivel" + i, 0);
         }
+        /*audio*/
+        audio_touchDown = Gdx.audio.newSound(Gdx.files.internal("audio/lowRandom.ogg"));
+        audio_touchUp = Gdx.audio.newSound(Gdx.files.internal("audio/lowDown.ogg"));
+        audio_tree = Gdx.audio.newSound(Gdx.files.internal("audio/lowThreeTone.ogg"));
+
         this.menor_movimento_nivel_actual = numerosDeMovimentosPorNivel[nivel-1];// nivel-1 por se nivel for 1 posicao sera 0
         this.menor_movimento_alvo = numerosDeMovimentosAlvo[nivel-1];
         //Na tela de GameOver ou Sair do jogo e salvar os dados
@@ -165,20 +176,27 @@ public class PlayState extends State {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                Vector3 worldCoords = new Vector3(screenX, screenY,0);
-                camera.unproject(worldCoords);
-                System.out.println("Clicaste em X: "+worldCoords.x+" Y: "+worldCoords.y);
+                if(!estaClicado){
 
-                // executa quando tocamos ensima do objecto
-                System.out.println("touchDown");
+                    estaClicado = true;
+                    Vector3 worldCoords = new Vector3(screenX, screenY, 0);
+                    camera.unproject(worldCoords);
+                    System.out.println("Clicaste em X: " + worldCoords.x + " Y: " + worldCoords.y);
 
-                // Verifique se um disco foi tocado
-                for (Tower tower:towers) {
-                    if (tower.pickTopDisk(worldCoords.x, worldCoords.y) != null) {
-                        towerSelected = tower;
-                        selectedDisk = tower.pop();
-                        //selectedDisk = tower.pickTopDisk(worldCoords.x, worldCoords.y);
-                        break;
+                    // executa quando tocamos ensima do objecto
+                    System.out.println("touchDown");
+
+                    // Verifique se um disco foi tocado
+                    for (Tower tower : towers) {
+                        if (tower.pickTopDisk(worldCoords.x, worldCoords.y) != null) {
+                            audio_touchDown.play();
+                            towerSelected = tower;
+                            selectedDisk = tower.pop();
+                            //selectedDisk = tower.pickTopDisk(worldCoords.x, worldCoords.y);
+                            break;
+                        }else {
+                            /*erro_audio*/
+                        }
                     }
                 }
                 return true; // Consuma o evento de toque
@@ -208,11 +226,13 @@ public class PlayState extends State {
             @Override
             public boolean touchUp(int screenX, int screenY, int pointer, int button) {
 
+                estaClicado = false;
                 Vector3 worldCoords = new Vector3(screenX, screenY,0);
                 camera.unproject(worldCoords);
 
 
                 if (selectedDisk != null) {
+
                     // executa quando largamos o visor depois de arrastar
                     System.out.println("touchUp");
 
@@ -224,14 +244,18 @@ public class PlayState extends State {
                             targetTower = tower;//.getTowerAtPosition(worldCoords.x, worldCoords.y);
                             // moveDisk(towerSelected,targetTower);
                             break;
+                        }else {
+                            /*audio erro*/
                         }
                     }
                     System.out.println("disco pode ser movido para uma torre?: "+targetTower);
                     if (targetTower != null && targetTower.isMoveValid(selectedDisk,targetTower)) {
                         //targetTower.push(selectedDisk);
+                        audio_touchUp.play();
                         movimentoPermitido = moveDisk(towerSelected,targetTower);
                         isGameOver(tower2.disks.size());
                     } else {
+                        audio_tree.play();
                         towerSelected.push(selectedDisk);
                         //Voltar o disco na torre de origem
                         // O movimento é inválido, retorne o disco à posição original
@@ -315,7 +339,21 @@ public class PlayState extends State {
     }
     private void isGameOver(int size){
         if (size == nivel) {
-            gameOver();
+
+            java.lang.Thread linhaSecundaria = new java.lang.Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        java.lang.Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }  finally {
+                        gameOver();
+                    }
+                }
+            });
+            linhaSecundaria.start();
+
         }
     }
 

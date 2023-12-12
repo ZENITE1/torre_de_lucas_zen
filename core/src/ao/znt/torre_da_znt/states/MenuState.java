@@ -1,10 +1,12 @@
 package ao.znt.torre_da_znt.states;
 
+import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.assets.loaders.MusicLoader;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -46,13 +48,14 @@ public class MenuState extends State {
     Preferences preferences;
     Music music;
 
-
-
     public MenuState(GameStateManager gsm){
         super(gsm);
 
 
-        music = Gdx.audio.newMusic(Gdx.files.internal("swing.mp3"));
+        music = Gdx.audio.newMusic(Gdx.files.internal("audio/swing.mp3"));
+
+
+        music.setVolume(0.5f);
         preferences = Gdx.app.getPreferences("towergame");
         this.nivel  = preferences.getInteger("nivel",1);
         for (int i = 0; i < 11; i++) {
@@ -178,9 +181,9 @@ public class MenuState extends State {
                 Gdx.graphics.getHeight() - 20
         );
         //TUDO quando for tocado mudar a png e talvez audio de click
-        if (!audioActive) {
+        if (audioActive) {
             sb.draw(
-                    regions[3],
+                    regions[0],
                     xRegion0,
                     yRegion0
             );
@@ -188,7 +191,7 @@ public class MenuState extends State {
             music.setLooping(true);
         }else {
             sb.draw(
-                    regions[0],
+                    regions[3],
                     xRegion0,
                     yRegion0
             );
